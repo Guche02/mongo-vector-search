@@ -4,7 +4,6 @@ from embedding_functions import query_embedding
 import time
 
 index_name = "new"
-
 existing_indexes = list(users_collection.list_search_indexes())
 index_exists = any(index['name'] == index_name for index in existing_indexes)
 
@@ -14,7 +13,7 @@ if not index_exists:
   "mappings": {
     "dynamic": True,
     "fields": {
-      "user_embedding": {
+      "embedding_user": {
         "dimensions": 384,
         "similarity": "cosine",
         "type": "knnVector"
@@ -44,33 +43,28 @@ def get_query_results(query):
     """Gets results from a vector search query."""
     
     query_embed = query_embedding(query)
+    
     pipeline = [
-  {
-    "$search": {
-      "index": "new",
-      "text": {
-        "query": query,
-        "path": {
-          "wildcard": "*",
+        {
+            "$search": {
+                "index": "new",
+                "knnBeta": {
+                    "vector": query_embed,
+                    "path": "embedding_user",
+                    "k": 2  # Number of closest results to return
+                }
+            }
         },
-      },
-    },
-  },
-  {
+        {
             "$project": {
                 "_id": 0,  
                 "name": 1,  
                 "email": 1,
                 "age": 1,  
-                "review": 1, 
+                "review": 1
             }
         }
-]
+    ]
     
-    results = users_collection.aggregate(pipeline)
-    
-    array_of_results = []
-    for doc in results:
-        array_of_results.append(doc)
-    
-    return array_of_results
+    results = list(users_collection.aggregate(pipeline))  # Ensure results are a list
+    return results
