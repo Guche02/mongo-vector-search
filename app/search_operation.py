@@ -5,12 +5,10 @@ import time
 
 index_name = "new"
 
-# Check if the index already exists
 existing_indexes = list(users_collection.list_search_indexes())
 index_exists = any(index['name'] == index_name for index in existing_indexes)
 
 if not index_exists:
-    # Create the new search index if it doesn't exist
     search_index_model = SearchIndexModel(
         {
   "mappings": {
@@ -31,7 +29,6 @@ if not index_exists:
 else:
     print(f"Index '{index_name}' already exists, using the existing index.")
 
-# Polling to check if the index is ready. This may take up to a minute.
 print("Polling to check if the index is ready. This may take up to a minute.")
 predicate = lambda index: index.get("queryable") is True
 
@@ -45,10 +42,8 @@ print(index_name + " is ready for querying.")
 
 def get_query_results(query):
     """Gets results from a vector search query."""
-    # Generate the embedding for the query using the new query_embedding function
-    query_embed = query_embedding(query)
     
-    # Define the aggregation pipeline for the vector search
+    query_embed = query_embedding(query)
     pipeline = [
   {
     "$search": {
@@ -63,19 +58,17 @@ def get_query_results(query):
   },
   {
             "$project": {
-                "_id": 0,  # Exclude the _id field
-                "name": 1,  # You can also include other fields like name, email, etc.
+                "_id": 0,  
+                "name": 1,  
                 "email": 1,
-                "age": 1,  # Include the 'text' field (or any other fields you want to keep)
-                "review": 1,  # Include the 'text' field (or any other fields you want to keep)
+                "age": 1,  
+                "review": 1, 
             }
         }
 ]
     
-    # Execute the aggregation pipeline on the users collection
     results = users_collection.aggregate(pipeline)
     
-    # Collect and return the results
     array_of_results = []
     for doc in results:
         array_of_results.append(doc)

@@ -15,5 +15,4 @@ def query_embedding(query):
     Creates an embedding for the query string using the SentenceTransformer model.
     The query is treated as a single input string.
     """
-    # Generate embedding for the query text
-    return model.encode(query).tolist()  # Return the embedding as a list
+    return model.encode(query).tolist()  
