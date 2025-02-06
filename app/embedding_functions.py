@@ -2,12 +2,12 @@ from sentence_transformers import SentenceTransformer
 
 model = SentenceTransformer("all-MiniLM-L6-v2")  
 
-def generate_embedding(user):
+def generate_embedding(paper):
     """
-    Generates an embedding for a given user using their name, email, and review.
+    Generates an embedding for a given research paper using its title, abstract, and keywords.
     """
-    user_text = f"{user.get('name', '')} {user.get('email', '')} {user.get('age', '')} {user.get('review', '')}"
-    return model.encode(user_text).tolist()  
+    paper_text = f"{paper.get('title', '')} {paper.get('abstract', '')} {paper.get('keywords', '')}"
+    return model.encode(paper_text).tolist()
 
 
 def query_embedding(query):

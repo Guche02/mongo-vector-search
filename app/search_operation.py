@@ -1,10 +1,10 @@
 from pymongo.operations import SearchIndexModel
-from connect import users_collection
+from connect import papers_collection
 from embedding_functions import query_embedding
 import time
 
-index_name = "new"
-existing_indexes = list(users_collection.list_search_indexes())
+index_name = "default"
+existing_indexes = list(papers_collection.list_search_indexes())
 index_exists = any(index['name'] == index_name for index in existing_indexes)
 
 if not index_exists:
@@ -13,7 +13,7 @@ if not index_exists:
   "mappings": {
     "dynamic": True,
     "fields": {
-      "embedding_user": {
+      "embedding_paper": {
         "dimensions": 384,
         "similarity": "cosine",
         "type": "knnVector"
@@ -23,7 +23,7 @@ if not index_exists:
 }
     )
 
-    users_collection.create_search_index(model=search_index_model)
+    papers_collection.create_search_index(model=search_index_model)
     print(f"Index '{index_name}' created successfully.")
 else:
     print(f"Index '{index_name}' already exists, using the existing index.")
@@ -32,7 +32,7 @@ print("Polling to check if the index is ready. This may take up to a minute.")
 predicate = lambda index: index.get("queryable") is True
 
 while True:
-    indices = list(users_collection.list_search_indexes(index_name))
+    indices = list(papers_collection.list_search_indexes(index_name))
     if len(indices) and predicate(indices[0]):
         break
     time.sleep(5)
@@ -47,24 +47,24 @@ def get_query_results(query):
     pipeline = [
         {
             "$search": {
-                "index": "new",
+                "index": "default",
                 "knnBeta": {
                     "vector": query_embed,
-                    "path": "embedding_user",
-                    "k": 2  # Number of closest results to return
+                    "path": "embedding_paper",
+                    "k": 5  # Number of closest results to return
                 }
             }
         },
         {
             "$project": {
                 "_id": 0,  
-                "name": 1,  
-                "email": 1,
-                "age": 1,  
-                "review": 1
+                "title":1,
+                "abstract":1,
+                "keywords":1,
+                 "Similarity Score": { "$meta": "searchScore" }
             }
         }
     ]
     
-    results = list(users_collection.aggregate(pipeline))  # Ensure results are a list
+    results = list(papers_collection.aggregate(pipeline))  # Ensure results are a list
     return results

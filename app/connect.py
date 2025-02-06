@@ -7,8 +7,8 @@ load_dotenv()
 uri = os.getenv("MONGO_URI")
 client = MongoClient(uri)
 
-db = client["company"]
-users_collection = db["user"]
+db = client["research"]
+papers_collection = db["papers"]
 
 try:
     client.admin.command('ping')

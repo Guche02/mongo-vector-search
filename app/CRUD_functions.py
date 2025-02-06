@@ -1,56 +1,52 @@
-from connect import users_collection
+from connect import papers_collection
 from embedding_functions import generate_embedding
 from bson import ObjectId  
 
-def insert_user(name, email, age, review):
+def insert_paper(title, abstract, keywords):
     """
-    Inserts a new user into the database and automatically generates their embedding.
+    Inserts a new research paper into the database and automatically generates its embedding.
     """
-    user_data = {
-        "name": name,
-        "email": email,
-        "age": age,
-        "review": review,
-        "embedding_user": generate_embedding({"name": name, "email": email, "age": age, "review": review})
+    paper_data = {
+        "title": title,
+        "abstract": abstract,
+        "keywords": keywords,
+        "embedding_paper": generate_embedding({"title": title, "abstract": abstract, "keywords": keywords})
     }
     
-    result = users_collection.insert_one(user_data)
-    print(f"New user added with ID {result.inserted_id}")
+    result = papers_collection.insert_one(paper_data)
+    print(f"New research paper added with ID {result.inserted_id}")
 
-def update_user(user_id, name=None, email=None, age=None, review=None):
+def update_paper(paper_id, title=None, abstract=None, keywords=None):
     """
-    Updates the details of a user and regenerates their embedding.
+    Updates the details of a research paper and regenerates its embedding.
     """
-    if isinstance(user_id, str):
-        user_id = ObjectId(user_id)  
+    if isinstance(paper_id, str):
+        paper_id = ObjectId(paper_id)  
     
     updated_data = {}
     
-    if name:
-        updated_data["name"] = name
-    if email:
-        updated_data["email"] = email
-    if age:
-        updated_data["age"] = age
-    if review:
-        updated_data["review"] = review
+    if title:
+        updated_data["title"] = title
+    if abstract:
+        updated_data["abstract"] = abstract
+    if keywords:
+        updated_data["keywords"] = keywords
     
-    result = users_collection.update_one(
-        {"_id": user_id},
+    result = papers_collection.update_one(
+        {"_id": paper_id},
         {"$set": updated_data}
     )
     
     if result.modified_count > 0:
-        print(f"User {user_id} updated successfully.")
+        print(f"Research paper {paper_id} updated successfully.")
 
-        user_data = users_collection.find_one({"_id": user_id})
-        embedding = generate_embedding(user_data)
+        paper_data = papers_collection.find_one({"_id": paper_id})
+        embedding = generate_embedding(paper_data)
 
-        users_collection.update_one(
-            {"_id": user_id},
-            {"$set": {"embedding_user": embedding}}
+        papers_collection.update_one(
+            {"_id": paper_id},
+            {"$set": {"embedding_paper": embedding}}
         )
-        print(f"Embedding regenerated for user {user_id}.")
+        print(f"Embedding regenerated for research paper {paper_id}.")
     else:
-        print(f"No updates were made for user {user_id}. Check if the user ID exists.")
-
+        print(f"No updates were made for research paper {paper_id}. Check if the paper ID exists.")
